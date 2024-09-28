@@ -64,7 +64,7 @@ async function translateHTML(url, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TR
 
   $('body')
     .find('*')
-    .not('script,iframe,style')
+    .not('script,iframe,noscript,style,svg,video')
     .contents()
     .filter((_, element) => element.nodeType === 3)
     .each((_, element) => {
@@ -73,18 +73,22 @@ async function translateHTML(url, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TR
         textNodes.push(text);
       }
     });
-
   const translationsMap = await translateTexts(textNodes, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_ENDPOINT, AZURE_LOCATION);
-
-  $('body').find('*').not('script').each((_, element) => {
-    const originalText = $(element).text().trim();
-
-    if (translationsMap[originalText]) {
-      $(element).text(translationsMap[originalText]);
-    }
-  });
+  $('body')
+    .find('*')
+    .not('script,iframe,noscript,style,svg,video')
+    .contents()
+    .filter((_, element) => element.nodeType === 3)
+    .each((_, element) => {
+      let originalText = $(element).text().trim();
+      originalText = originalText.replace(/\s+/g, ' ').trim();
+      if (translationsMap[originalText]) {
+        $(element).replaceWith(translationsMap[originalText]);
+      }
+    });
 
   return $.html();
 }
+
 
 module.exports = translateHTML;
