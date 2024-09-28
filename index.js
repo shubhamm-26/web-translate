@@ -10,8 +10,8 @@ async function fetchHTML(url) {
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching HTML:', error);
-    throw error;
+    console.error('Error fetching HTML:', error.message);
+    throw new Error(`Failed to fetch HTML from ${url}: ${error.response?.status || error.message}`);
   }
 }
 
@@ -56,36 +56,55 @@ async function translateTexts(texts, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE
 
 
 async function translateHTML(url, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_ENDPOINT, AZURE_LOCATION) {
-  const html = await fetchHTML(url);
-  const $ = cheerio.load(html);
-  const textNodes = [];
+  try {
+    if (!url) {
+      throw new Error('URL is required');
+    }
+    if (!targetLanguage) {
+      throw new Error('Target language is required');
+    }
+    if (!AZURE_TRANSLATOR_KEY) {
+      throw new Error('Azure Translator key is required');
+    }
+    if (!AZURE_TRANSLATOR_ENDPOINT) {
+      throw new Error('Azure Translator endpoint is required');
+    }
+    if (!AZURE_LOCATION) {
+      throw new Error('Azure location is required');
+    }
+    const html = await fetchHTML(url);
+    const $ = cheerio.load(html);
+    const textNodes = [];
+    $('body')
+      .find('*')
+      .not('script,iframe,noscript,style,svg,video')
+      .contents()
+      .filter((_, element) => element.nodeType === 3)
+      .each((_, element) => {
+        const text = $(element).text().trim();
+        if (text) {
+          textNodes.push(text);
+        }
+      });
+    const translationsMap = await translateTexts(textNodes, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_ENDPOINT, AZURE_LOCATION);
+    $('body')
+      .find('*')
+      .not('script,iframe,noscript,style,svg,video')
+      .contents()
+      .filter((_, element) => element.nodeType === 3)
+      .each((_, element) => {
+        let originalText = $(element).text().trim();
+        originalText = originalText.replace(/\s+/g, ' ').trim();
+        if (translationsMap[originalText]) {
+          $(element).replaceWith(translationsMap[originalText]);
+        }
+      });
 
-  $('body')
-    .find('*')
-    .not('script,iframe,noscript,style,svg,video')
-    .contents()
-    .filter((_, element) => element.nodeType === 3)
-    .each((_, element) => {
-      const text = $(element).text().trim();
-      if (text) {
-        textNodes.push(text);
-      }
-    });
-  const translationsMap = await translateTexts(textNodes, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_ENDPOINT, AZURE_LOCATION);
-  $('body')
-    .find('*')
-    .not('script,iframe,noscript,style,svg,video')
-    .contents()
-    .filter((_, element) => element.nodeType === 3)
-    .each((_, element) => {
-      let originalText = $(element).text().trim();
-      originalText = originalText.replace(/\s+/g, ' ').trim();
-      if (translationsMap[originalText]) {
-        $(element).replaceWith(translationsMap[originalText]);
-      }
-    });
-
-  return $.html();
+    return $.html();
+  } catch (error) {
+    console.error('Error translating HTML:', error.message);
+    throw error;
+  }
 }
 
 
