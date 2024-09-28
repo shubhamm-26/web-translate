@@ -24,19 +24,22 @@ npm i azure-web-translate
 Below is an example of how to use the `translateHTML` function to translate a webpage to French:
 
 ```javascript
-const { translateHTML } = require('translate-html-npm');
+const translateWebpage  = require('azure-web-translate');
 
 const url = 'https://example.com';
-const targetLanguage = 'fr';
-const azureKey = 'YOUR_AZURE_TRANSLATOR_API_KEY';
-const azureRegion = 'YOUR_AZURE_REGION';
+const targetLanguage = 'ru';
 
-translateHTML(url, targetLanguage, azureKey, azureRegion)
-  .then(translatedHTML => {
-    console.log(translatedHTML);
+const AZURE_TRANSLATOR_KEY = process.env.AZURE_TRANSLATOR_KEY;
+const AZURE_TRANSLATOR_ENDPOINT = process.env.AZURE_TRANSLATOR_ENDPOINT;
+const AZURE_LOCATION = process.env.AZURE_LOCATION;
+
+translateWebpage(url, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE_TRANSLATOR_ENDPOINT, AZURE_LOCATION)
+  .then(translatedHtml => {
+    const fs = require('fs');
+    fs.writeFileSync('translated.html', translatedHtml);
   })
   .catch(error => {
-    console.error('Translation error:', error);
+    console.error('Error:', error);
   });
 ```
 
