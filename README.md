@@ -14,7 +14,7 @@ This package allows you to translate HTML content from a given URL using the Azu
 To use this package in your project, install it via npm:
 
 ```bash
-npm install translate-html-npm
+npm i azure-web-translate
 ```
 
 ## Usage

@@ -1,6 +1,6 @@
 {
   "name": "azure-web-translate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Package for translating web pages using Azure Cognitive Services",
   "main": "index.js",
   "scripts": {
