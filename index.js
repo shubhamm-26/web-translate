@@ -46,8 +46,6 @@ async function translateTexts(texts, targetLanguage, AZURE_TRANSLATOR_KEY, AZURE
       translationsMap[originalText] = translatedText;
     });
 
-    const fs = require('fs');
-    fs.writeFileSync('translations.json', JSON.stringify(translationsMap));
     return translationsMap;
 
   } catch (error) {
